@@ -24,10 +24,10 @@ def rotate():
     number = float(request.args.get('number'))
     rotations_nb = round(number * 512)
     if rotations_nb < 0:
-        motor.motor_run(GpioPins , .001, -rotations_nb, False, False, "half", .05)
+        motor.motor_run(GpioPins , .0005, -rotations_nb, False, False, "half", .05)
         set_state("0")
     elif rotations_nb >= 0:
-        motor.motor_run(GpioPins , .001, rotations_nb, True, False, "half", .05)
+        motor.motor_run(GpioPins , .005, rotations_nb, True, False, "half", .05)
         set_state("1")
     return 'Done'
 
