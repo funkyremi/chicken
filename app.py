@@ -1,4 +1,5 @@
 import RPi.GPIO as GPIO
+import threading
 from RpiMotorLib import RpiMotorLib
 from flask import Flask, request
 app = Flask(__name__)
@@ -19,17 +20,23 @@ def set_state(state):
     state_file.write(state)
     state_file.close()
 
+def open_door(rotations_nb):
+    motor.motor_run(GpioPins , .0005, -rotations_nb, False, False, "half", .05)
+
+def close_door(rotations_nb):
+    motor.motor_run(GpioPins , .005, rotations_nb, True, False, "half", .05)
+
 @app.route('/rotate')
 def rotate():
     number = float(request.args.get('number'))
     rotations_nb = round(number * 512)
     if rotations_nb < 0:
-        motor.motor_run(GpioPins , .0005, -rotations_nb, False, False, "half", .05)
+        threading.Thread(target=open_door, args=[rotations_nb]).start()
         set_state("0")
     elif rotations_nb >= 0:
-        motor.motor_run(GpioPins , .005, rotations_nb, True, False, "half", .05)
+        threading.Thread(target=close_door, args=[rotations_nb]).start()
         set_state("1")
-    return 'Done'
+    return 'done'
 
 @app.route('/state')
 def state():
