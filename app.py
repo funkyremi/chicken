@@ -1,4 +1,5 @@
 import RPi.GPIO as GPIO
+import threading
 from RpiMotorLib import RpiMotorLib
 from flask import Flask, request
 app = Flask(__name__)
@@ -21,6 +22,22 @@ def set_state(state):
     state_file.write(state)
     state_file.close()
 
+def open_door(rotations_nb):
+    global is_moving
+    print('Opening')
+    is_moving = True
+    motor.motor_run(GpioPins , .0005, -rotations_nb, False, False, "half", .05)
+    is_moving = False
+    print('Opened')
+
+def close_door(rotations_nb):
+    global is_moving
+    print('Closing')
+    is_moving = True
+    motor.motor_run(GpioPins , .005, rotations_nb, True, False, "half", .05)
+    is_moving = False
+    print('Closed')
+
 @app.route('/rotate')
 def rotate():
     global is_moving
@@ -28,21 +45,13 @@ def rotate():
         number = float(request.args.get('number'))
         rotations_nb = round(number * 512)
         if rotations_nb < 0:
-            print('Opening')
-            is_moving = True
-            motor.motor_run(GpioPins , .0005, -rotations_nb, False, False, "half", .05)
-            is_moving = False
-            print('Opened')
+            threading.Thread(target=open_door, args=[rotations_nb]).start()
             set_state("0")
-            return 'Door opened'
+            return 'Opening'
         elif rotations_nb >= 0:
-            print('Closing')
-            is_moving = True
-            motor.motor_run(GpioPins , .005, rotations_nb, True, False, "half", .05)
-            is_moving = False
-            print('Closed')
+            threading.Thread(target=close_door, args=[rotations_nb]).start()
             set_state("1")
-            return 'Door closed'
+            return 'Closing'
     else:
         return 'Please wait until the motor has stopped moving.'
 
