@@ -55,6 +55,34 @@ def rotate():
     else:
         return 'Please wait until the motor has stopped moving.'
 
+@app.route('/open')
+def open_door_url():
+    global is_moving
+    if not is_moving:
+        if get_state() != '0':
+            rotations_nb = round(-11 * 512)
+            threading.Thread(target=open_door, args=[rotations_nb]).start()
+            set_state("0")
+            return 'Opening'
+        else:
+            return 'The door is already opened.'
+    else:
+        return 'Please wait until the motor has stopped moving.'
+
+@app.route('/close')
+def close_door_url():
+    global is_moving
+    if not is_moving:
+        if get_state() != '1':
+            rotations_nb = round(10 * 512)
+            threading.Thread(target=close_door, args=[rotations_nb]).start()
+            set_state("1")
+            return 'Closing'
+        else:
+            return 'The door is already closed.'
+    else:
+        return 'Please wait until the motor has stopped moving.'
+
 @app.route('/state')
 def state():
     return get_state()
