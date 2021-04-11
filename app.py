@@ -1,7 +1,10 @@
 import RPi.GPIO as GPIO
+import threading
 from RpiMotorLib import RpiMotorLib
 from flask import Flask, request
 app = Flask(__name__)
+
+is_moving = False
 
 # Setup the motor
 GpioPins = [18, 23, 24, 25]
@@ -19,17 +22,66 @@ def set_state(state):
     state_file.write(state)
     state_file.close()
 
+def open_door(rotations_nb):
+    global is_moving
+    print('Opening')
+    is_moving = True
+    motor.motor_run(GpioPins , 0.003, -rotations_nb, False, False, "full", .05)
+    is_moving = False
+    print('Opened')
+
+def close_door(rotations_nb):
+    global is_moving
+    print('Closing')
+    is_moving = True
+    motor.motor_run(GpioPins , 0.003, rotations_nb, True, False, "full", .05)
+    is_moving = False
+    print('Closed')
+
 @app.route('/rotate')
 def rotate():
-    number = float(request.args.get('number'))
-    rotations_nb = round(number * 512)
-    if rotations_nb < 0:
-        motor.motor_run(GpioPins , .0005, -rotations_nb, False, False, "half", .05)
-        set_state("0")
-    elif rotations_nb >= 0:
-        motor.motor_run(GpioPins , .005, rotations_nb, True, False, "half", .05)
-        set_state("1")
-    return 'Done'
+    global is_moving
+    if not is_moving:
+        number = float(request.args.get('number'))
+        rotations_nb = round(number * 512)
+        if rotations_nb < 0:
+            threading.Thread(target=open_door, args=[rotations_nb]).start()
+            set_state("0")
+            return 'Opening'
+        elif rotations_nb >= 0:
+            threading.Thread(target=close_door, args=[rotations_nb]).start()
+            set_state("1")
+            return 'Closing'
+    else:
+        return 'Please wait until the motor has stopped moving.'
+
+@app.route('/open')
+def open_door_url():
+    global is_moving
+    if not is_moving:
+        if get_state() != '0':
+            rotations_nb = round(-9 * 512)
+            threading.Thread(target=open_door, args=[rotations_nb]).start()
+            set_state("0")
+            return 'Opening'
+        else:
+            return 'The door is already opened.'
+    else:
+        return 'Please wait until the motor has stopped moving.'
+
+@app.route('/close')
+def close_door_url():
+    global is_moving
+    if not is_moving:
+        if get_state() != '1':
+            rotations_nb = round(10 * 512)
+            threading.Thread(target=close_door, args=[rotations_nb]).start()
+            set_state("1")
+            return 'Closing'
+        else:
+            return 'The door is already closed.'
+    else:
+        return 'Please wait until the motor has stopped moving.'
 
 @app.route('/state')
 def state():
