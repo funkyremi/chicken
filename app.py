@@ -26,7 +26,7 @@ def open_door(rotations_nb):
     global is_moving
     print('Opening')
     is_moving = True
-    motor.motor_run(GpioPins , 0.003, -rotations_nb, False, False, "full", .05)
+    motor.motor_run(GpioPins , 0.001, -rotations_nb, False, False, "full", .05)
     is_moving = False
     print('Opened')
 
@@ -34,7 +34,7 @@ def close_door(rotations_nb):
     global is_moving
     print('Closing')
     is_moving = True
-    motor.motor_run(GpioPins , 0.003, rotations_nb, True, False, "full", .05)
+    motor.motor_run(GpioPins , 0.001, rotations_nb, True, False, "full", .05)
     is_moving = False
     print('Closed')
 
@@ -60,7 +60,7 @@ def open_door_url():
     global is_moving
     if not is_moving:
         if get_state() != '0':
-            rotations_nb = round(-9 * 512)
+            rotations_nb = round(-10 * 512)
             threading.Thread(target=open_door, args=[rotations_nb]).start()
             set_state("0")
             return 'Opening'
@@ -89,4 +89,3 @@ def state():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
-
