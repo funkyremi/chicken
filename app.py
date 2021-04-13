@@ -19,7 +19,7 @@ def button_callback(channel):
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.add_event_detect(17, GPIO.RISING, callback=button_callback)
+GPIO.add_event_detect(17, GPIO.RISING, callback=button_callback, bouncetime=200)
 
 
 # Set and get state from file
