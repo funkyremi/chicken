@@ -5,23 +5,20 @@ from flask import Flask, request
 app = Flask(__name__)
 
 is_moving = False
-is_closing = False
 
 # Setup the motor
 GpioPins = [18, 23, 24, 25]
 motor = RpiMotorLib.BYJMotor("Motor", "28BYJ")
 
-# Setup end button switch
-def button_callback(channel):
-    if is_closing:
-        print("Stopping motor")
-        motor.motor_stop()
-
-
+# Setup the switch
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.add_event_detect(17, GPIO.RISING, callback=button_callback, bouncetime=200)
+
+# Setup end button switch
+def button_callback(channel):
+    print("Stopping motor")
+    motor.motor_stop()
 
 
 # Set and get state from file
@@ -49,13 +46,12 @@ def open_door(rotations_nb):
 
 def close_door(rotations_nb):
     global is_moving
-    global is_closing
     print('Closing')
+    GPIO.add_event_detect(17, GPIO.RISING, callback=button_callback)
     is_moving = True
-    is_closing = True
     motor.motor_run(GpioPins, 0.002, rotations_nb, True, False, "full", .05)
     is_moving = False
-    is_closing = False
+    GPIO.remove_event_detect(17)
     print('Closed')
 
 
