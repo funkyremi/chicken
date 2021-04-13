@@ -5,6 +5,7 @@ from flask import Flask, request
 app = Flask(__name__)
 
 is_moving = False
+is_closing = False
 
 # Setup the motor
 GpioPins = [18, 23, 24, 25]
@@ -12,8 +13,9 @@ motor = RpiMotorLib.BYJMotor("Motor", "28BYJ")
 
 # Setup end button switch
 def button_callback(channel):
-    print("Stopping motor")
-    motor.motor_stop()
+    if is_closing:
+        print("Stopping motor")
+        motor.motor_stop()
 
 
 GPIO.setwarnings(False)
@@ -47,10 +49,13 @@ def open_door(rotations_nb):
 
 def close_door(rotations_nb):
     global is_moving
+    global is_closing
     print('Closing')
     is_moving = True
+    is_closing = True
     motor.motor_run(GpioPins, 0.002, rotations_nb, True, False, "full", .05)
     is_moving = False
+    is_closing = False
     print('Closed')
 
 
