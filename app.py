@@ -10,6 +10,18 @@ is_moving = False
 GpioPins = [18, 23, 24, 25]
 motor = RpiMotorLib.BYJMotor("Motor", "28BYJ")
 
+# Setup end button switch
+def button_callback(channel):
+    print("Stopping motor")
+    motor.motor_stop()
+
+
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.add_event_detect(10, GPIO.RISING, callback=button_callback)
+
+
 # Set and get state from file
 def get_state():
     state_file = open("state.txt", "r")
@@ -17,26 +29,30 @@ def get_state():
     state_file.close()
     return state
 
+
 def set_state(state):
     state_file = open("state.txt", "w")
     state_file.write(state)
     state_file.close()
 
+
 def open_door(rotations_nb):
     global is_moving
     print('Opening')
     is_moving = True
-    motor.motor_run(GpioPins , 0.002, -rotations_nb, False, False, "full", .05)
+    motor.motor_run(GpioPins, 0.002, -rotations_nb, False, False, "full", .05)
     is_moving = False
     print('Opened')
+
 
 def close_door(rotations_nb):
     global is_moving
     print('Closing')
     is_moving = True
-    motor.motor_run(GpioPins , 0.002, rotations_nb, True, False, "full", .05)
+    motor.motor_run(GpioPins, 0.002, rotations_nb, True, False, "full", .05)
     is_moving = False
     print('Closed')
+
 
 @app.route('/rotate')
 def rotate():
@@ -55,6 +71,7 @@ def rotate():
     else:
         return 'Please wait until the motor has stopped moving.'
 
+
 @app.route('/open')
 def open_door_url():
     global is_moving
@@ -68,6 +85,7 @@ def open_door_url():
             return 'The door is already opened.'
     else:
         return 'Please wait until the motor has stopped moving.'
+
 
 @app.route('/close')
 def close_door_url():
@@ -83,9 +101,17 @@ def close_door_url():
     else:
         return 'Please wait until the motor has stopped moving.'
 
+
+@app.route('/stop')
+def stop_door_url():
+    motor.motor_stop()
+    return 'The motor is stopped'
+
+
 @app.route('/state')
 def state():
     return get_state()
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
