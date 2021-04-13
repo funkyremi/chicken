@@ -39,7 +39,7 @@ def open_door(rotations_nb):
     global is_moving
     print('Opening')
     is_moving = True
-    motor.motor_run(GpioPins, 0.001, -rotations_nb, False, False, "full", .05)
+    motor.motor_run(GpioPins, 0.002, -rotations_nb, False, False, "full", .05)
     is_moving = False
     print('Opened')
 
@@ -49,7 +49,7 @@ def close_door(rotations_nb):
     print('Closing')
     GPIO.add_event_detect(17, GPIO.RISING, callback=button_callback)
     is_moving = True
-    motor.motor_run(GpioPins, 0.001, rotations_nb, True, False, "full", .05)
+    motor.motor_run(GpioPins, 0.002, rotations_nb, True, False, "full", .05)
     is_moving = False
     GPIO.remove_event_detect(17)
     print('Closed')
