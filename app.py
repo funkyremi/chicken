@@ -92,7 +92,7 @@ def close_door_url():
     global is_moving
     if not is_moving:
         if get_state() != '1':
-            rotations_nb = round(8.5 * 512)
+            rotations_nb = round(10 * 512)
             threading.Thread(target=close_door, args=[rotations_nb]).start()
             set_state("1")
             return 'Closing'
